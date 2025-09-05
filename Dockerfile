@@ -1,28 +1,18 @@
 # Tinyproxy (https://banu.com/tinyproxy/)
+FROM alpine:latest
 
-FROM ubuntu:precise
-MAINTAINER Ryan Seto <ryanseto@yak.net>
+# Install tini and tinyproxy
+RUN apk add --no-cache tini tinyproxy
 
-RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list && \
-        apt-get update && \
-        apt-get upgrade
+COPY tinyproxy.conf /etc/tinyproxy/tinyproxy.conf
 
-# Ensure UTF-8
-RUN locale-gen en_US.UTF-8
-ENV LANG       en_US.UTF-8
-ENV LC_ALL     en_US.UTF-8
+EXPOSE 3128
 
-# Prevent apt-get from complaining with: Unable to connect to Upstart
-RUN dpkg-divert --local --rename --add /sbin/initctl && \
-        ln -s /bin/true /sbin/initctl
+RUN tinyproxy -v
 
-# Install Tinyproxy
-RUN apt-get -y install tinyproxy
-
-# Configure Tinyproxy
-# This allows allows all connections.
-RUN sed -i -e"s/^Allow /#Allow /" /etc/tinyproxy.conf
+# Use tini as the init system to handle signals properly
+ENTRYPOINT ["/sbin/tini", "--"]
 
 USER nobody
-EXPOSE 8888
-ENTRYPOINT ["/usr/sbin/tinyproxy", "-d"]
+# Run tinyproxy in the foreground
+CMD ["tinyproxy", "-d"]
