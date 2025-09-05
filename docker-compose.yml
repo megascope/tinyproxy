@@ -1,0 +1,11 @@
+services:
+  tinyproxy:
+    container_name: tinyproxy
+    image: ghcr.io/megascope/tinyproxy:latest
+    ports:
+      - "3128:3128"
+    restart: unless-stopped
+
+    # optional, override default config
+    #volumes:
+    #  - ./tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf:ro
